@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+
+  alerts     Alert[]
+  portfolios PortfolioPosition[]
+}
+
+model Coin {
+  id     String @id
+  symbol String
+  name   String
+
+  snapshots  PriceSnapshot[]
+  alerts     Alert[]
+  portfolios PortfolioPosition[]
+}
+
+model PriceSnapshot {
+  id String @id @default(cuid())
+
+  coinId String
+  coin   Coin   @relation(fields: [coinId], references: [id])
+
+  price      Float
+  change24h  Float
+  volume24h  Float
+  marketCap  Float?
+  volatility Float?
+
+  createdAt DateTime @default(now())
+
+  @@index([coinId])
+  @@index([createdAt])
+  @@index([coinId, createdAt])
+}
+
+model Alert {
+  id String @id @default(cuid())
+
+  condition String
+  target    Float
+  active    Boolean @default(true)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  coinId String
+  coin   Coin   @relation(fields: [coinId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  history AlertHistory[]
+}
+
+model AlertHistory {
+  id String @id @default(cuid())
+
+  alertId String
+  alert   Alert  @relation(fields: [alertId], references: [id])
+
+  triggeredPrice Float
+
+  createdAt DateTime @default(now())
+}
+
+model PortfolioPosition {
+  id String @id @default(cuid())
+
+  quantity Float
+  buyPrice Float
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  coinId String
+  coin   Coin   @relation(fields: [coinId], references: [id])
+
+  createdAt DateTime @default(now())
+}
