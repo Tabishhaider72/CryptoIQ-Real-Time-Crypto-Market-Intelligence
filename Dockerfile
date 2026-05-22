@@ -43,13 +43,15 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
+ENV COREPACK_ENABLE_STRICT=0
 
 RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-RUN mkdir -p /app/tmp && chown nextjs:nodejs /app/tmp
+RUN mkdir -p /app/tmp && \
+    chown -R nextjs:nodejs /app/tmp
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -66,4 +68,4 @@ USER nextjs
 EXPOSE 3000
 EXPOSE 4001
 
-CMD ["sh", "-c", "node server.js & pnpm socket & pnpm worker & wait"]
+CMD ["node", "server.js"]
