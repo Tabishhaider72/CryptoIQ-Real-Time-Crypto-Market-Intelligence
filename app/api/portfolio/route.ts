@@ -42,7 +42,6 @@ export async function GET() {
     const costBasis = pos.buyPrice * pos.quantity;
     const pnl = currentValue - costBasis;
     const pnlPercent = costBasis > 0 ? (pnl / costBasis) * 100 : 0;
-
     return {
       id: pos.id,
       coinId: pos.coinId,
@@ -79,4 +78,29 @@ export async function POST(req: NextRequest) {
 
   const { coinId, quantity, buyPrice } = await req.json();
   if (!coinId || !quantity || !buyPrice) {
-    return NextResp
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  await prisma.coin.upsert({
+    where: { id: coinId },
+    update: {},
+    create: { id: coinId, symbol: coinId, name: coinId },
+  });
+
+  const position = await prisma.portfolioPosition.create({
+    data: { userId: user.id, coinId, quantity: Number(quantity), buyPrice: Number(buyPrice) },
+  });
+
+  return NextResponse.json(position, { status: 201 });
+}
+
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await req.json();
+  await prisma.portfolioPosition.delete({ where: { id } });
+  return NextResponse.json({ success: true });
+}
