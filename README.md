@@ -21,7 +21,6 @@ CryptoIQ is a full-stack real-time crypto intelligence platform that fetches liv
 
 ---
 
-## Screenshots
 
 ## Screenshots
 
