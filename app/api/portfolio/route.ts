@@ -4,6 +4,17 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { getLivePrices } from "@/lib/coingecko";
 
+type Position = {
+  id: string;
+  coinId: string;
+  quantity: number;
+  buyPrice: number;
+  coin: {
+    symbol: string;
+    name: string;
+  };
+};
+
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -25,7 +36,7 @@ export async function GET() {
   const priceMap: Record<string, number> = {};
   prices.forEach((p: any) => { priceMap[p.id] = p.current_price; });
 
-  const enriched = positions.map((pos) => {
+  const enriched = positions.map((pos: Position) => {
     const currentPrice = priceMap[pos.coinId] ?? 0;
     const currentValue = currentPrice * pos.quantity;
     const costBasis = pos.buyPrice * pos.quantity;
@@ -68,30 +79,4 @@ export async function POST(req: NextRequest) {
 
   const { coinId, quantity, buyPrice } = await req.json();
   if (!coinId || !quantity || !buyPrice) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  }
-
-  // ensure coin exists
-  await prisma.coin.upsert({
-    where: { id: coinId },
-    update: {},
-    create: { id: coinId, symbol: coinId, name: coinId },
-  });
-
-  const position = await prisma.portfolioPosition.create({
-    data: { userId: user.id, coinId, quantity: Number(quantity), buyPrice: Number(buyPrice) },
-  });
-
-  return NextResponse.json(position, { status: 201 });
-}
-
-export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { id } = await req.json();
-  await prisma.portfolioPosition.delete({ where: { id } });
-  return NextResponse.json({ success: true });
-}
+    return NextResp
