@@ -9,7 +9,7 @@
   "next": "next dev",
   "socket": "tsx --tsconfig tsconfig.json backend/socketServer.ts",
   "worker": "tsx --tsconfig tsconfig.json backend/workers/priceWorker.ts",
-  "build": "next build",
+  "build": "prisma generate && next build",
   "start": "next start",
   "lint": "eslint"
 },
